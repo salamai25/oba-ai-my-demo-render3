@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OBA Full Demo</title>
+  <script>
+    const api = window.location.origin + '/api';
+
+    async function addProgram() {
+      await fetch(api + '/programs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: 1,
+          name: 'Computer Science',
+          description: 'Bachelor program'
+        })
+      });
+      alert('✅ Program Added');
+    }
+
+    async function addCourse() {
+      await fetch(api + '/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: 1,
+          name: 'Data Structures',
+          code: 'CS202',
+          program_id: 1
+        })
+      });
+      alert('✅ Course Added');
+    }
+
+    async function addAssessment() {
+      await fetch(api + '/assessments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: 1,
+          title: 'Quiz 1',
+          type: 'Quiz',
+          total_marks: 10,
+          weightage: 10,
+          session: 'Fall 2025',
+          date: '2025-10-01',
+          course_id: 1
+        })
+      });
+      alert('✅ Assessment Added');
+    }
+  </script>
+</head>
+<body style="font-family: sans-serif; padding: 2rem; background: #f5f5f5;">
+  <h1>📘 OBA Demo — Outcome-Based Assessment</h1>
+  <button onclick="addProgram()" style="margin: 1rem;">Add Program</button>
+  <button onclick="addCourse()" style="margin: 1rem;">Add Course</button>
+  <button onclick="addAssessment()" style="margin: 1rem;">Add Assessment</button>
+</body>
+</html>
