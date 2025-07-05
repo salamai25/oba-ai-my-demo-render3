@@ -1,13 +1,14 @@
-
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship, Session
+from sqlalchemy.orm import sessionmaker, Session
 
+# App
 app = FastAPI()
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,11 +17,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Static files
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+# Database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./oba.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
+# Models
 class Program(Base):
     __tablename__ = "programs"
     id = Column(Integer, primary_key=True, index=True)
@@ -47,6 +53,7 @@ class Assessment(Base):
 
 Base.metadata.create_all(bind=engine)
 
+# Dependency
 def get_db():
     db = SessionLocal()
     try:
@@ -54,8 +61,7 @@ def get_db():
     finally:
         db.close()
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
-
+# Routes
 @app.post("/api/programs")
 def add_program(data: dict, db: Session = Depends(get_db)):
     program = Program(**data)
