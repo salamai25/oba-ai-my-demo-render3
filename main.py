@@ -1,87 +1,115 @@
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OBA Interactive Demo</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 2rem; }
+    h1 { color: #333; }
+    .section { background: white; padding: 1rem; margin-bottom: 2rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, button { width: 100%; padding: 8px; margin-top: 5px; }
+    button { background: #007bff; color: white; border: none; border-radius: 4px; margin-top: 15px; cursor: pointer; }
+  </style>
+</head>
+<body>
 
-# App
-app = FastAPI()
+  <h1>📘 Outcome-Based Assessment</h1>
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+  <div class="section">
+    <h2>📌 Add Program</h2>
+    <label for="programName">Program Name</label>
+    <input type="text" id="programName" placeholder="e.g. Computer Science" />
 
-# Static files
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+    <label for="programDesc">Description</label>
+    <input type="text" id="programDesc" placeholder="e.g. Bachelor program" />
 
-# Database
-SQLALCHEMY_DATABASE_URL = "sqlite:///./oba.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(bind=engine)
-Base = declarative_base()
+    <button onclick="addProgram()">Add Program</button>
+  </div>
 
-# Models
-class Program(Base):
-    __tablename__ = "programs"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    description = Column(String)
+  <div class="section">
+    <h2>📚 Add Course</h2>
+    <label for="courseName">Course Name</label>
+    <input type="text" id="courseName" placeholder="e.g. Data Structures" />
 
-class Course(Base):
-    __tablename__ = "courses"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    code = Column(String)
-    program_id = Column(Integer, ForeignKey("programs.id"))
+    <label for="courseCode">Course Code</label>
+    <input type="text" id="courseCode" placeholder="e.g. CS202" />
 
-class Assessment(Base):
-    __tablename__ = "assessments"
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String)
-    type = Column(String)
-    total_marks = Column(Integer)
-    weightage = Column(Integer)
-    session = Column(String)
-    date = Column(String)
-    course_id = Column(Integer, ForeignKey("courses.id"))
+    <label for="courseProgramId">Program ID</label>
+    <input type="number" id="courseProgramId" placeholder="e.g. 1" />
 
-Base.metadata.create_all(bind=engine)
+    <button onclick="addCourse()">Add Course</button>
+  </div>
 
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+  <div class="section">
+    <h2>📝 Add Assessment</h2>
+    <label for="assessmentTitle">Title</label>
+    <input type="text" id="assessmentTitle" placeholder="e.g. Quiz 1" />
 
-# Routes
-@app.post("/api/programs")
-def add_program(data: dict, db: Session = Depends(get_db)):
-    program = Program(**data)
-    db.add(program)
-    db.commit()
-    db.refresh(program)
-    return program
+    <label for="assessmentType">Type</label>
+    <input type="text" id="assessmentType" placeholder="e.g. Quiz" />
 
-@app.post("/api/courses")
-def add_course(data: dict, db: Session = Depends(get_db)):
-    course = Course(**data)
-    db.add(course)
-    db.commit()
-    db.refresh(course)
-    return course
+    <label for="assessmentMarks">Total Marks</label>
+    <input type="number" id="assessmentMarks" placeholder="e.g. 20" />
 
-@app.post("/api/assessments")
-def add_assessment(data: dict, db: Session = Depends(get_db)):
-    assessment = Assessment(**data)
-    db.add(assessment)
-    db.commit()
-    db.refresh(assessment)
-    return assessment
+    <label for="assessmentWeight">Weightage</label>
+    <input type="number" id="assessmentWeight" placeholder="e.g. 10" />
+
+    <label for="assessmentSession">Session</label>
+    <input type="text" id="assessmentSession" placeholder="e.g. Fall 2025" />
+
+    <label for="assessmentDate">Date</label>
+    <input type="date" id="assessmentDate" />
+
+    <label for="assessmentCourseId">Course ID</label>
+    <input type="number" id="assessmentCourseId" placeholder="e.g. 1" />
+
+    <button onclick="addAssessment()">Add Assessment</button>
+  </div>
+
+  <script>
+    const api = window.location.origin + '/api';
+
+    async function addProgram() {
+      const name = document.getElementById('programName').value;
+      const description = document.getElementById('programDesc').value;
+      await fetch(api + '/programs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description })
+      });
+      alert('✅ Program added');
+    }
+
+    async function addCourse() {
+      const name = document.getElementById('courseName').value;
+      const code = document.getElementById('courseCode').value;
+      const program_id = parseInt(document.getElementById('courseProgramId').value);
+      await fetch(api + '/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, code, program_id })
+      });
+      alert('✅ Course added');
+    }
+
+    async function addAssessment() {
+      const title = document.getElementById('assessmentTitle').value;
+      const type = document.getElementById('assessmentType').value;
+      const total_marks = parseInt(document.getElementById('assessmentMarks').value);
+      const weightage = parseInt(document.getElementById('assessmentWeight').value);
+      const session = document.getElementById('assessmentSession').value;
+      const date = document.getElementById('assessmentDate').value;
+      const course_id = parseInt(document.getElementById('assessmentCourseId').value);
+      await fetch(api + '/assessments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, type, total_marks, weightage, session, date, course_id })
+      });
+      alert('✅ Assessment added');
+    }
+  </script>
+
+</body>
+</html>
